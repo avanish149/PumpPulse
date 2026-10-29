@@ -94,3 +94,7 @@ All original sidebar pages share the backend experiment; no iframe or old demo s
 ## Parameter verification
 
 See [the parameter audit](PARAMETER_AUDIT.md) for all 18 numeric fields, model/timeline controls, five uncertainty settings, fixed specifications, limits and corrections. The expanded suite has 26 passing tests. Well 010317 has only six records and is unavailable for complete-day replay; 35 of the 36 source wells are replayable. Engine 1.1 adds fixed-speed P2 handling and a no-water stop at an uncovered intake. Existing saved results keep their original engine version; run again to apply changes.
+
+## Navigation
+
+The dashboard has seven main tabs: Overview, India Atlas, Pump & Setup, Simulation, Policies & Schedule, Results & Validation, and Reports. Related tools are grouped into section links. Standalone Live Monitoring, Bearing Analysis and Fleet Intelligence pages have been removed. Saved runs are in Overview and Reports. See NAVIGATION.md for the current workflow.

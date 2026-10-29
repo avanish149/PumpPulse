@@ -1,3 +1,7 @@
+# Current navigation
+
+The interface is now consolidated into seven main tabs. See [NAVIGATION.md](NAVIGATION.md) for their sections and workflow. The table below describes the capabilities inherited from the earlier 16-page interface; Live Monitoring, Bearing Analysis and Fleet Intelligence no longer have standalone pages.
+
 # Full original-dashboard backend integration
 
 The original sidebar and the main entry now render the same application. There is no embedded second dashboard and no original client-side pump simulator loaded by either entry.

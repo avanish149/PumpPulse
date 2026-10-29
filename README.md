@@ -10,7 +10,7 @@ A local, data-driven educational simulator for solar-powered irrigation pumps. C
 - Hour-by-hour policy recommendations with a continuous simulated pump state.
 - Paired, seeded uncertainty experiments.
 - Saved local experiments and CSV/JSON exports.
-- Unified original dashboard: 16 pages share the backend, with seven conceptual pump models.
+- Unified original dashboard: seven main tabs share the backend, with seven conceptual pump models.
 
 ## Run locally
 
@@ -61,3 +61,7 @@ The server binds to localhost and is intended for local presentation and experim
 ## Parameter verification
 
 See [the parameter audit](PumpPulse-backend/PARAMETER_AUDIT.md) for all 18 numeric fields, model/timeline controls, five uncertainty settings, fixed specifications, limits and corrections. The expanded suite has 26 passing tests. Well 010317 has only six records and is unavailable for complete-day replay; 35 of the 36 source wells are replayable. Engine 1.1 adds fixed-speed P2 handling and a no-water stop at an uncovered intake. Existing saved results keep their original engine version; run again to apply changes.
+
+## Navigation
+
+The dashboard has seven main tabs: Overview, India Atlas, Pump & Setup, Simulation, Policies & Schedule, Results & Validation, and Reports. Related tools are grouped into section links. Standalone Live Monitoring, Bearing Analysis and Fleet Intelligence pages have been removed. Saved runs are in Overview and Reports. See PumpPulse-backend/NAVIGATION.md for the current workflow.
