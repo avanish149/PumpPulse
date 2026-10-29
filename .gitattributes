@@ -1,0 +1,10 @@
+* text=auto
+*.csv -text
+*.pdf -text
+*.png -text
+*.cmd text eol=crlf
+*.py text eol=lf
+*.js text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.md text eol=lf

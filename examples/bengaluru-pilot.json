@@ -1,0 +1,9 @@
+{
+  "station_id": "010203",
+  "start": "2025-01-01",
+  "end": "2025-03-20",
+  "config": {
+    "array_Wp": 3600,
+    "daily_target_L": 36000
+  }
+}

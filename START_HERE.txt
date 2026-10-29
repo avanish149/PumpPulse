@@ -1,0 +1,6 @@
+PUMPPULSE
+
+See README.md for first-time Python environment and dependency setup.
+On Windows, after setup, double-click Start PumpPulse.cmd.
+Keep the server window open and use Connected Project.
+Saved experiment databases are created locally and excluded from Git.
