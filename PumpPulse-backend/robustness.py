@@ -5,6 +5,19 @@ import pandas as pd
 from engine import run, POLICIES
 from service import connect
 
+def explain_result(result):
+ """Explain qualification failures without changing winners or simulated outcomes."""
+ trials=result['trials'];counts={p:dict(demand_failures=0,risk_failures=0,both_failures=0,mean_water_L=0.,minimum_water_L=float('inf'),maximum_water_L=0.) for p in POLICIES};matched=0
+ for trial in trials:
+  outcomes=trial['outcomes'];reference=outcomes[0]
+  matched+=int(all(all(math.isclose(o[k],reference[k],rel_tol=1e-9,abs_tol=1e-6) for k in ('water_L','wear_u','low_water_risk_hours')) for o in outcomes[1:]))
+  for outcome in outcomes:
+   stats=counts[outcome['policy']];demand=outcome['shortfall_L']>1e-6;risk=outcome['low_water_risk_hours']>0
+   stats['demand_failures']+=int(demand);stats['risk_failures']+=int(risk);stats['both_failures']+=int(demand and risk);stats['mean_water_L']+=outcome['water_L']/len(trials);stats['minimum_water_L']=min(stats['minimum_water_L'],outcome['water_L']);stats['maximum_water_L']=max(stats['maximum_water_L'],outcome['water_L'])
+ for summary in result['summary']:summary.update(counts[summary['policy']])
+ result['diagnostics']=dict(matching_output_scenarios=matched,scenario_count=len(trials),qualification='Full daily demand and zero low-water-risk hours. No qualifying policy means no winner; low stress alone does not qualify.',demand_only_no_winner_scenarios=sum(t['winner'] is None and all(o['low_water_risk_hours']==0 for o in t['outcomes']) for t in trials))
+ return result
+
 def challenge(experiment,payload,persist=True):
  if not isinstance(payload,dict) or set(payload)-{'experiment_id','date','scenarios','seed','solar_pct','groundwater_m','wear_pct'}:raise ValueError('Unknown uncertainty request fields')
  count=payload.get('scenarios',30);seed=payload.get('seed',42)
@@ -35,6 +48,7 @@ def challenge(experiment,payload,persist=True):
  summary=[]
  for p,s in stats.items():s['win_pct']=100*s['wins']/count;s['feasible_pct']=100*s['feasible']/count;summary.append(s)
  result=dict(id=str(uuid.uuid4()),experiment_id=experiment['id'],date=day,created=datetime.now(timezone.utc).isoformat(),seed=seed,scenarios=count,ranges=ranges,summary=summary,no_feasible_scenarios=none,trials=trials,method='Isolated-day scenarios start at rest. All policies share each perturbed input series. Feasible means full daily target and zero low-submergence hours. Lowest relative wear wins; exact ties use policy ID. Uniform ranges are experiment assumptions, not calibrated probability distributions. Frequencies are not statistical confidence or field safety certificates.',engine_version='local-backend-1.1',source_version=experiment['version'],base_config=experiment['config'],sources=experiment['metadata']['sources'])
+ explain_result(result)
  if persist:
   with connect() as db:
    db.execute('CREATE TABLE IF NOT EXISTS robustness (id TEXT PRIMARY KEY, experiment_id TEXT, result TEXT)');db.execute('INSERT INTO robustness VALUES (?,?,?)',(result['id'],experiment['id'],json.dumps(result,allow_nan=False)))
@@ -43,4 +57,4 @@ def challenge(experiment,payload,persist=True):
 def load_challenge(identifier):
  with connect() as db:
   db.execute('CREATE TABLE IF NOT EXISTS robustness (id TEXT PRIMARY KEY, experiment_id TEXT, result TEXT)');r=db.execute('SELECT result FROM robustness WHERE id=?',(identifier,)).fetchone()
- return json.loads(r[0]) if r else None
+ return explain_result(json.loads(r[0])) if r else None
