@@ -31,7 +31,7 @@ def main():
  assert request('/timeline.js')[0]==200
  print('Timeline HTTP checks passed: exact source-depth match, 19:00 OFF state, 19:15 rejection, timeline asset.')
 
- for asset in ['/twin3d.js','/robustness.js','/vendor/three.min.js']:
+ for asset in ['/vendor/india-states.js','/twin3d.js','/robustness.js','/vendor/three.min.js']:
   assert request(asset)[0]==200
  status,body,_=request('/api/robustness',dict(experiment_id=item['id'],date='2025-01-01',scenarios=10,seed=42,solar_pct=15,groundwater_m=1,wear_pct=30))
  unc=json.loads(body);assert status==201 and len(unc['summary'])==4;assert len(unc['trials'])==10

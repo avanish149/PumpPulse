@@ -5,7 +5,7 @@ The original sidebar and the main entry now render the same application. There i
 | Original page | Integrated data path |
 |---|---|
 | Mission Control | Backend station metadata and the loaded experiment summary |
-| India Atlas | Actual Bengaluru dataset coordinates, search and shared draft well selection |
+| India Atlas | Restored offline India/state map, Bengaluru zoom with +/− controls, actual well coordinates, search, selection and quick-run to the twin |
 | Station Details | Source coverage, coordinates and observation counts from the backend |
 | Pump Model Explorer | Seven original conceptual models from /api/models; selection changes backend configuration |
 | Mechanical Parameters Lab | Shared settings submitted to /api/simulations; invalid installations rejected |
@@ -36,3 +36,7 @@ The seven original designs have backend calculations but retain assumed specific
 26 unit/contract/parameter tests pass. Original P0-P2 pilot results are unchanged. HTTP checks cover both identical entry pages, seven-model metadata, compatibility rejection, source capability reporting, fleet data, saved experiments, timeline state, recommendations and uncertainty exports. Browser verification confirmed the original sidebar routes, model changes reaching the twin and engineering page, and recommended P2-to-P3 transitions in both 3D and the ledger.
 
 The repository distribution excludes local saved experiments, databases, installation records and environment files. New saved experiments are created locally.
+
+## Atlas and mechanical layout
+
+India Atlas starts with the original offline India/state boundary geometry. Click Bengaluru/Karnataka or choose Bengaluru wells; +/− zoom around the selected well. Search IDs or select markers, then configure or run the selected well. Mechanical Parameters uses a full-width form with grouped pump/dataset, installation, schedule, pipe, efficiency and stress settings. The shared form moves between this page and the sidebar, retaining one set of input IDs and values. Geometry attribution is in static/vendor/INDIA_SOURCE.md.

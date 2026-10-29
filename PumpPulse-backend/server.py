@@ -63,7 +63,7 @@ class Handler(BaseHTTPRequestHandler):
     if table not in ('summary','daily','half_hourly','inputs'):return self.send(404,{'error':'Unknown export'})
     rows=item[table];buf=io.StringIO(newline='');w=csv.DictWriter(buf,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
     return self.send(200,buf.getvalue(),'text/csv; charset=utf-8',table+'-'+parts[2]+'.csv')
-   files={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/unified.js':'unified.js','/timeline.js':'timeline.js','/twin3d.js':'twin3d.js','/robustness.js':'robustness.js','/recommendations.js':'recommendations.js','/vendor/three.min.js':'vendor/three.min.js','/style.css':'style.css','/demo':'original-dashboard.html'}
+   files={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/unified.js':'unified.js','/timeline.js':'timeline.js','/twin3d.js':'twin3d.js','/robustness.js':'robustness.js','/recommendations.js':'recommendations.js','/vendor/india-states.js':'vendor/india-states.js','/vendor/three.min.js':'vendor/three.min.js','/style.css':'style.css','/demo':'original-dashboard.html'}
    if p in files:
     f=ROOT/'static'/files[p];kind=mimetypes.guess_type(str(f))[0] or 'application/octet-stream'
     return self.send(200,f.read_bytes(),kind+'; charset=utf-8')
