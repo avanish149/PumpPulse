@@ -3,7 +3,8 @@ from urllib.parse import urlsplit, parse_qs
 from pathlib import Path
 import argparse, csv, io, json, mimetypes, threading, traceback
 from data import DataStore, NOTES
-from service import DEFAULTS, BOUNDS, simulate, history, load, state_at
+from models import MODELS
+from service import DEFAULTS, BOUNDS, simulate, history, load, state_at, station_history
 
 from robustness import challenge, load_challenge
 from recommendations import recommend, load_plan
@@ -28,8 +29,16 @@ class Handler(BaseHTTPRequestHandler):
   if not self.allowed():return
   u=urlsplit(self.path);p=u.path
   try:
-   if p=='/api/health':return self.send(200,dict(status='ok',version='local-backend-0.2',stations=len(self.server.store.stations)))
+   if p=='/api/health':return self.send(200,dict(status='ok',version='local-backend-1.0',stations=len(self.server.store.stations)))
    if p=='/api/stations':return self.send(200,dict(stations=self.server.store.stations,assumptions=NOTES))
+   if p=='/api/models':return self.send(200,dict(models=list(MODELS.values())))
+   if p=='/api/capabilities':return self.send(200,dict(live_sensors=False,weather_forecast=False,bearing_recordings=False,historical_replay=True,hourly_planner=True,pump_models=len(MODELS)))
+   if p=='/api/fleet':
+    latest={}
+    for entry in station_history():
+     if entry['station_id'] not in latest:
+      saved=load(entry['id']);latest[entry['station_id']]=dict(experiment_id=entry['id'],created=entry['created'],model_id=saved['config'].get('model_id','ILL-3HP'),start=entry['start'],end=entry['end'],summary=saved['summary'])
+    return self.send(200,dict(stations=[dict(s,latest_experiment=latest.get(s['id'])) for s in self.server.store.stations]))
    if p=='/api/config':return self.send(200,dict(defaults=DEFAULTS,bounds=BOUNDS,pump='Illustrative 3 HP submersible'))
    if p=='/api/experiments':return self.send(200,dict(experiments=history()))
    if p.startswith('/api/recommendations/'):
@@ -54,7 +63,7 @@ class Handler(BaseHTTPRequestHandler):
     if table not in ('summary','daily','half_hourly','inputs'):return self.send(404,{'error':'Unknown export'})
     rows=item[table];buf=io.StringIO(newline='');w=csv.DictWriter(buf,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
     return self.send(200,buf.getvalue(),'text/csv; charset=utf-8',table+'-'+parts[2]+'.csv')
-   files={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/timeline.js':'timeline.js','/twin3d.js':'twin3d.js','/robustness.js':'robustness.js','/recommendations.js':'recommendations.js','/vendor/three.min.js':'vendor/three.min.js','/style.css':'style.css','/demo':'original-dashboard.html'}
+   files={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/unified.js':'unified.js','/timeline.js':'timeline.js','/twin3d.js':'twin3d.js','/robustness.js':'robustness.js','/recommendations.js':'recommendations.js','/vendor/three.min.js':'vendor/three.min.js','/style.css':'style.css','/demo':'original-dashboard.html'}
    if p in files:
     f=ROOT/'static'/files[p];kind=mimetypes.guess_type(str(f))[0] or 'application/octet-stream'
     return self.send(200,f.read_bytes(),kind+'; charset=utf-8')
@@ -91,7 +100,7 @@ def main():
    with urllib.request.urlopen(f'http://127.0.0.1:{args.port}/api/health',timeout=2) as response:health=json.load(response)
    if health.get('status')=='ok' and health.get('version','').startswith('local-backend-'):
     print('PumpPulse is already running. Opening the project.',flush=True)
-    webbrowser.open(f'http://127.0.0.1:{args.port}/demo#backend');return
+    webbrowser.open(f'http://127.0.0.1:{args.port}/demo#home');return
   except (OSError,ValueError):pass
  store=DataStore();server=ThreadingHTTPServer(('127.0.0.1',args.port),Handler);server.store=store
  print(f'PumpPulse local backend: http://127.0.0.1:{args.port}',flush=True)

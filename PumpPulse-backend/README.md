@@ -1,8 +1,8 @@
 # PumpPulse local project
 
-Start **start.cmd**, then open **http://127.0.0.1:8765/**. Keep the server terminal open; Ctrl+C stops it. The launcher uses the installed Codex Python runtime when available. Alternatively install requirements.txt into a separate Python environment and run python server.py. Use --port 8766 to change the port.
+Start **start.cmd**, then open **http://127.0.0.1:8765/**. Keep the server terminal open; Ctrl+C stops it. The repository launcher uses the root .venv environment when available, otherwise the Python launcher. Alternatively install requirements.txt into a separate Python environment and run python server.py. Use --port 8766 to change the port.
 
-## Connected application
+## Unified original application
 
 The main application is driven by one saved backend experiment. It combines:
 
@@ -14,18 +14,18 @@ The main application is driven by one saved backend experiment. It combines:
 - Seeded, paired uncertainty experiments for a selected day, with feasibility and win frequencies.
 - Persistent experiment storage and CSV/JSON exports. URL experiment links reopen saved runs; optional date, time and policy parameters select a timeline step.
 
-The illustrative pump is a 3 HP submersible (2,200 W electrical ceiling). Other manufacturer models are not implemented. The local Three.js library was reused from the supplied HTML; no external CDN is required. Geometry is conceptual.
+The seven original conceptual pump designs are now available to the backend, including the default 3 HP submersible. None have manufacturer-verified curves. Select a model in Shared experiment settings or Pump Model Explorer. Surface designs enforce the assumed suction-lift limit. The local Three.js library was reused from the supplied HTML; no external CDN is required. Geometry is conceptual.
 
-The older dashboard is preserved at **/demo**, with a Bengaluru Backend navigation entry. Its other pages still use the original client-side demo logic and fictional stations. Settings on those legacy pages are separate from the connected application. The original Downloads files were not edited. The new connected 3D twin is in the main application.
+Both **/** and **/demo** serve the same integrated dashboard. All original sidebar pages share the backend experiment and timeline; no embedded dashboard or separate client-side simulator is loaded.
 
 ## Data and source assumptions
 
-Reads these files from Downloads/el sem 3 by default:
+Reads these included files from the repository root (or PUMPPULSE_DATA_DIR):
 
 - bengaluru_urban_groundwater_hourly_interpolated.csv
 - POWER_Point_Hourly_20240101_20251201_013d01N_077d62E_LST.csv
 
-Set PUMPPULSE_DATA_DIR to another directory before startup if needed. Restart to load source changes. Data stay on this computer. Source files are not bundled into this project folder; SHA-256 hashes are saved with experiments.
+Set PUMPPULSE_DATA_DIR to another directory before startup if needed. Restart to load source changes. Simulation runs locally. The repository includes the project source datasets; SHA-256 hashes are saved with experiments.
 
 Groundwater timestamps are assumed IST and positive values are provisionally interpreted as metres below ground. Confirm these source conventions before field conclusions. Hourly source statuses are preserved; half-hour groundwater values are interpolated only between adjacent supplied hours. Upstream hourly reconstructions may contain long original measurement gaps, which this loader cannot audit without original readings. Interpolated-only stations are labelled.
 
@@ -71,7 +71,7 @@ Old three-policy saved runs remain readable; run a new experiment to include P3.
 
 server.py: HTTP and local static serving. data.py: source validation and alignment. engine.py: pump dynamics and four policies. service.py: validation, aggregation, persistence and exact-time lookup. robustness.py: paired uncertainty trials and storage. static/: connected UI, shared timeline, 3D twin and legacy copy. experiments.sqlite3: locally saved runs.
 
-Run python -m unittest test_backend -v for model regression, time alignment, energy limits, validation, target stopping, daily reset, no future-solar dependence, reproducible uncertainty and persistence. Run python test_http.py with the server running for HTTP and export checks. Browser verification covers timeline/3D synchronisation, view modes, uncertainty execution and old-run compatibility.
+Run python -m unittest test_backend test_unified_frontend -v for model regression, time alignment, energy limits, validation, target stopping, daily reset, no future-solar dependence, reproducible uncertainty and persistence. Run python test_http.py with the server running for HTTP and export checks. Browser verification covers timeline/3D synchronisation, view modes, uncertainty execution and old-run compatibility.
 
 ## Remaining validation
 
@@ -86,3 +86,7 @@ This is historical look-ahead planning: known future sunlight within the recorde
 Each day begins with the saved P3 midnight state (P1 for old three-policy experiments), or at rest at the experiment start. A recommendation for another day is therefore a separate day plan, not a stitched multi-day strategy. JSON includes this initial state, all 24 decisions, four alternatives per decision and the executed 48-step trajectory.
 
 POST /api/recommendations with experiment_id and date. GET /api/recommendations/{id} returns the saved plan. GET /api/recommendations/{id}/schedule.csv exports the hourly table.
+
+## Fully unified version 1.0
+
+All original sidebar pages share the backend experiment; no iframe or old demo simulator is loaded. GET /api/models supplies the original seven conceptual models; model_id selects one in simulation config. GET /api/capabilities explicitly reports absent sensors/forecast/bearing data. GET /api/fleet supplies actual stations and latest saved experiments. Recommended schedule can drive the original twin and ledger. See INTEGRATION.md.

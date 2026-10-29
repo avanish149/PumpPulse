@@ -103,6 +103,22 @@ class BackendTests(unittest.TestCase):
    if hit:self.assertEqual(step['water_L'],0)
    hit=hit or step['daily_delivered_L']>=1000
   self.assertTrue(hit)
+ def test_original_models_are_backend_supported(self):
+  from models import MODELS
+  self.assertEqual(len(MODELS),7)
+  for model in ['ILL-5HP','DEMO-BLDC','DEMO-HELICAL','DEMO-BORE']:
+   r=service.simulate(self.store,dict(station_id='010203',start='2025-01-01',end='2025-01-01',config={'model_id':model}),save=False)
+   self.assertEqual(r['config']['model_id'],model);self.assertEqual(r['config']['power_W'],MODELS[model]['power_W'])
+   self.assertEqual(len(r['summary']),4)
+  for model in ['DEMO-SURFACE','DEMO-IRRIGATION']:
+   with self.assertRaisesRegex(ValueError,'suction lift'):service.simulate(self.store,dict(station_id='010203',start='2025-01-01',end='2025-01-01',config={'model_id':model}),save=False)
+  with self.assertRaisesRegex(ValueError,'Unknown pump'):service.validate({**self.payload,'config':{'model_id':'bad'}})
+ def test_fixed_speed_model_never_runs_at_partial_speed(self):
+  from models import model_config
+  from engine import run
+  inputs,_=self.store.prepare('010203','2025-01-01','2025-01-01');inputs.groundwater_depth_m_assumed=1
+  c=service.DEFAULTS.copy();c.update(model_config('DEMO-SURFACE'));c['array_Wp']=6000;c['intake_depth_m']=12
+  r=run(inputs,0,c);self.assertTrue(set(r.speed_fraction).issubset({0,1}));self.assertGreater(r.water_L.sum(),0)
  def test_saved_experiment_roundtrip(self):
   with tempfile.TemporaryDirectory(dir=Path(__file__).parent) as tmp,patch.object(service,'DB',Path(tmp)/'test.sqlite3'):
    out=service.simulate(self.store,dict(station_id='010203',start='2025-01-01',end='2025-01-01'),save=True)

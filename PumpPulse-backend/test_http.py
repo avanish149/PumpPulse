@@ -1,5 +1,6 @@
 import json, urllib.request, urllib.error, csv, io
-BASE='http://127.0.0.1:8765'
+import os
+BASE=os.environ.get('PUMPPULSE_BASE_URL','http://127.0.0.1:8765')
 def request(path,payload=None,headers=None):
  body=None if payload is None else json.dumps(payload).encode()
  req=urllib.request.Request(BASE+path,data=body,headers=headers or ({'Content-Type':'application/json'} if body else {}))
@@ -42,3 +43,13 @@ assert json.loads(request('/api/recommendations/'+plan['id'])[1])==plan
 assert len(list(csv.DictReader(io.StringIO(request('/api/recommendations/'+plan['id']+'/schedule.csv')[1].decode()))))==24
 assert request('/recommendations.js')[0]==200
 print('Hourly plan HTTP checks passed: generation, persistence, 24-row CSV and frontend asset.')
+
+assert len(json.loads(request('/api/models')[1])['models'])==7
+caps=json.loads(request('/api/capabilities')[1]);assert caps['weather_forecast'] is False and caps['bearing_recordings'] is False
+fleet=json.loads(request('/api/fleet')[1]);assert len(fleet['stations'])==36
+assert request('/')[1]==request('/demo')[1]
+assert b'<iframe' not in request('/demo')[1]
+assert request('/unified.js')[0]==200
+try:request('/api/simulations',dict(station_id='010203',start='2025-01-01',end='2025-01-01',config={'model_id':'DEMO-SURFACE'}));raise AssertionError('Invalid surface installation accepted')
+except urllib.error.HTTPError as e:assert e.code==422
+print('Unified original pages, seven models, truthful capabilities, fleet and surface compatibility checks passed.')

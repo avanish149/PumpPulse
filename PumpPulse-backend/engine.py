@@ -7,6 +7,7 @@ def hydraulic(q,depth,draw,C):
  return depth+draw+C['darcy_factor']*C['pipe_length_m']/C['pipe_diameter_m']*v*v/(2*9.81)
 
 def operating_point(speed,available,depth,draw,C):
+ if C.get('pump_type') in ('surface','irrigation') and depth+draw>7:return 0.,0.,0.
  if speed*C['nominal_rpm']<C['min_rpm']:speed=0
  power=min(C['power_W']*speed**3,available,C['voltage_V']*C['current_limit_A']);budget=power*C['motor_eff']*C['hydraulic_eff'];lo=0.;hi=min(C['max_flow_L_min'],C['nominal_flow_L_min']*speed)
  for _ in range(35):
@@ -30,7 +31,7 @@ def run(inputs,policy,C,initial=None):
    elif sub<=minimum:sp=q=power=0.;reason='Policy minimum-submergence protection'
    else:
     options=[]
-    for speed in [.4,.7,1.]:
+    for speed in [v for v in C.get('supported_levels',[0,.4,.7,1]) if v>0]:
      if C['power_W']*speed**3<=av+1e-9:
       point=operating_point(speed,av,depth,C['drawdown_m']+dr,C)
       if point[1]>0:options.append(point)
@@ -41,7 +42,7 @@ def run(inputs,policy,C,initial=None):
     sp,q,power=point;reason='Lowest supported speed meeting remaining-delivery rate with 40% planning reserve' if options and q*60>=required_rate else 'Highest feasible speed to reduce remaining demand' if options else 'No feasible supported flow/head operating point'
   else:
    cmd=(1 if on else 0) if policy==0 else (1 if on and sub>minimum else 0) if policy==1 else (.7 if on and sub>minimum+1 else .4 if on and sub>minimum else 0)
-   cap=min(cmd,np.cbrt(max(0,av/C['power_W'])));sp=next((x for x in [1,.7,.4,0] if x<=cap+1e-9),0)
+   cap=min(cmd,np.cbrt(max(0,av/C['power_W'])));sp=next((x for x in sorted(C.get('supported_levels',[0,.4,.7,1]),reverse=True) if x<=cap+1e-9),0)
    sp,q,power=operating_point(sp,av,depth,C['drawdown_m']+dr,C)
   if not sp and not reason:
    reason='Outside configured operating window' if not on else 'Policy minimum-submergence protection' if policy!=0 and sub<=minimum else 'No feasible supported speed under sunlight and head limits'

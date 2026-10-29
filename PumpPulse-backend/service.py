@@ -5,6 +5,7 @@ from datetime import date, datetime, timezone
 import pandas as pd
 import numpy as np
 from engine import run, POLICIES
+from models import MODELS, model_config
 
 DEFAULTS=dict(power_W=2200,array_Wp=3600,motor_eff=.85,hydraulic_eff=.60,temperature_retention=.90,controller_eff=.95,wiring_retention=.95,voltage_V=220,current_limit_A=13,nominal_rpm=2900,min_rpm=900,max_head_m=110,nominal_flow_L_min=100,max_flow_L_min=150,pipe_diameter_m=.05,pipe_length_m=60,darcy_factor=.025,drawdown_m=2,intake_depth_m=None,min_submergence_m=5,daily_target_L=36000,speed_wear=.9,dry_wear=2.5,start_wear=.6,start_hour=8,end_hour=18)
 # This pilot fixes motor specifications; installation and experimental assumptions are adjustable.
@@ -31,9 +32,12 @@ def validate(payload):
   if parsed.isoformat()!=v:raise ValueError('Use YYYY-MM-DD dates')
  config=payload.get('config',{})
  if not isinstance(config,dict):raise ValueError('Config must be an object')
- if set(config)-set(BOUNDS):raise ValueError('Unknown or fixed motor configuration field: '+', '.join(sorted(set(config)-set(BOUNDS))))
- c=DEFAULTS.copy()
+ if set(config)-(set(BOUNDS)|{'model_id'}):raise ValueError('Unknown or fixed motor configuration field: '+', '.join(sorted(set(config)-(set(BOUNDS)|{'model_id'}))))
+ c=DEFAULTS.copy();key=config.get('model_id','ILL-3HP')
+ if not isinstance(key,str):raise ValueError('Pump model ID must be text')
+ c.update(model_config(key))
  for k,v in config.items():
+  if k=='model_id':continue
   if k=='intake_depth_m' and v is None:continue
   if isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v):raise ValueError(k+' must be a finite number')
   lo,hi=BOUNDS[k]
@@ -46,6 +50,7 @@ def validate(payload):
 def simulate(store,payload,save=True):
  station,c=validate(payload);inputs,meta=store.prepare(station,payload['start'],payload['end'])
  if c['intake_depth_m'] is None:c['intake_depth_m']=float(inputs.groundwater_depth_m_assumed.max()+10.5)
+ if c['pump_type'] in ('surface','irrigation') and inputs.groundwater_depth_m_assumed.max()+c['drawdown_m']>7:raise ValueError('Surface pump suction lift exceeds the assumed 7 m limit at this well. Select a submerged model or a shallower compatible well.')
  if c['intake_depth_m']-inputs.groundwater_depth_m_assumed.max()-c['drawdown_m']<c['min_submergence_m']:raise ValueError('Intake does not provide the requested static submergence throughout the period. Increase intake depth or reduce drawdown.')
  results=pd.concat([run(inputs,p,c) for p in range(4)],ignore_index=True)
  num=results.select_dtypes('number')
@@ -58,7 +63,7 @@ def simulate(store,payload,save=True):
  results['timestamp_IST']=results.timestamp_IST.dt.strftime('%Y-%m-%dT%H:%M:%S+05:30')
  inputs['timestamp_IST']=inputs.timestamp_IST.dt.strftime('%Y-%m-%dT%H:%M:%S+05:30')
  records=lambda d:json.loads(d.to_json(orient='records',double_precision=10))
- result=dict(id=str(uuid.uuid4()),created=datetime.now(timezone.utc).isoformat(),version='local-backend-0.2',policies=POLICIES,metadata=meta,config=c,summary=records(summary),daily=records(daily),half_hourly=records(results),inputs=records(inputs),checks=['Finite outputs','Hydraulic power bounded by electrical input and efficiencies','Complete aligned inputs; no extrapolation'])
+ result=dict(id=str(uuid.uuid4()),created=datetime.now(timezone.utc).isoformat(),version='local-backend-1.0',policies=POLICIES,metadata=meta,config=c,summary=records(summary),daily=records(daily),half_hourly=records(results),inputs=records(inputs),checks=['Finite outputs','Hydraulic power bounded by electrical input and efficiencies','Complete aligned inputs; no extrapolation'])
  if save:
   with connect() as db:db.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?)',(result['id'],result['created'],station,payload['start'],payload['end'],json.dumps(result,allow_nan=False)))
  return result
@@ -92,3 +97,6 @@ def state_at(experiment,timestamp,policy):
   if policy!='P0' and row['submergence_m']<=c['min_submergence_m']:reasons.append('Policy minimum-submergence protection')
   if not reasons:reasons.append('No feasible supported flow/head operating point')
  return dict(experiment_id=experiment['id'],timestamp_IST=key,policy=policy,status='RUNNING' if row['speed_fraction']>0 else 'OFF',reasons=reasons,state=row,input=source,intake_depth_m=c['intake_depth_m'],pumping_depth_m=row['depth_m']+c['drawdown_m']+row['additional_drawdown_m'],rpm=row['speed_fraction']*c['nominal_rpm'])
+
+def station_history():
+ with connect() as db:return [dict(zip(['id','created','station_id','start','end'],r)) for r in db.execute('SELECT id,created,station,start,end FROM experiments ORDER BY created DESC')]

@@ -1,3 +1,3 @@
-@echo off
-cd /d "%~dp0PumpPulse-backend"
-call start.cmd --open
+@echo off
+cd /d "%~dp0PumpPulse-backend"
+call start.cmd --open

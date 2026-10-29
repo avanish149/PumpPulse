@@ -10,7 +10,7 @@ A local, data-driven educational simulator for solar-powered irrigation pumps. C
 - Hour-by-hour policy recommendations with a continuous simulated pump state.
 - Paired, seeded uncertainty experiments.
 - Saved local experiments and CSV/JSON exports.
-- Original dashboard retained with a Connected Project entry.
+- Unified original dashboard: 16 pages share the backend, with seven conceptual pump models.
 
 ## Run locally
 
@@ -27,7 +27,7 @@ python -m pip install -r PumpPulse-backend/requirements.txt
 python PumpPulse-backend/server.py
 ~~~
 
-Open http://127.0.0.1:8765/ for the connected workspace, or http://127.0.0.1:8765/demo#backend for the original dashboard entry. On Windows, after dependencies are installed, Start PumpPulse.cmd starts the backend and opens the original entry.
+Open http://127.0.0.1:8765/demo#home for the integrated original dashboard. The root URL serves the same application. On Windows, after dependencies are installed, Start PumpPulse.cmd starts the backend and opens the original entry.
 
 Select a well and dates, run all policies, and explore the timeline. The pilot request in examples/bengaluru-pilot.json reproduces the first Bengaluru study. A new SQLite database is created locally; personal saved experiments are not distributed.
 
@@ -43,7 +43,7 @@ The report PDF describes the original educational dashboard and predates the bac
 
 ~~~sh
 cd PumpPulse-backend
-python -m unittest test_backend -v
+python -m unittest test_backend test_unified_frontend -v
 ~~~
 
 HTTP checks additionally require a running server and at least one completed experiment:
@@ -54,6 +54,6 @@ python test_http.py
 
 ## Interpretation
 
-Pump specifications, drawdown response and stress coefficients are illustrative. No manufacturer-calibrated head-flow curve or field-validated pump-life model is supplied. Hourly recommendations use historical look-ahead and are not weather forecasts or proven global optima. Older original dashboard screens remain demos; use Connected Project for backend-driven results.
+Pump specifications, drawdown response and stress coefficients are illustrative. No manufacturer-calibrated head-flow curve or field-validated pump-life model is supplied. Hourly recommendations use historical look-ahead and are not weather forecasts or proven global optima. All original navigation pages now use the unified backend. Live weather forecasts, physical sensor feeds and bearing recordings are explicitly unavailable. See [the integration map](PumpPulse-backend/INTEGRATION.md) for the page-by-page connections.
 
 The server binds to localhost and is intended for local presentation and experimentation. It is not a public production deployment.
