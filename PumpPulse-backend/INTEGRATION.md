@@ -29,10 +29,10 @@ Generate a recommendation on Forecast & Schedule and select **View recommended s
 
 ## Scope
 
-The seven original designs have backend calculations but retain assumed specifications and conceptual geometry, not manufacturer curves. Surface designs reject groundwater lifts beyond the assumed 7 m suction limit. Actual forecast, IoT and vibration data remain unavailable. All active groundwater/solar simulation inputs are from the connected Bengaluru datasets; Nashik and other regions are not activated.
+The seven original designs have backend calculations but retain assumed specifications and conceptual geometry, not manufacturer curves. Surface designs reject groundwater lifts beyond the assumed 7 m suction limit. Actual forecast, IoT and vibration data remain unavailable. 35 wells have complete-day coverage; well 010317 has only six records and is disabled for replay. All active groundwater/solar simulation inputs are from the connected Bengaluru datasets; Nashik and other regions are not activated.
 
 ## Verification
 
-18 unit/contract tests pass. Original P0-P2 pilot results are unchanged. HTTP checks cover both identical entry pages, seven-model metadata, compatibility rejection, source capability reporting, fleet data, saved experiments, timeline state, recommendations and uncertainty exports. Browser verification confirmed the original sidebar routes, model changes reaching the twin and engineering page, and recommended P2-to-P3 transitions in both 3D and the ledger.
+26 unit/contract/parameter tests pass. Original P0-P2 pilot results are unchanged. HTTP checks cover both identical entry pages, seven-model metadata, compatibility rejection, source capability reporting, fleet data, saved experiments, timeline state, recommendations and uncertainty exports. Browser verification confirmed the original sidebar routes, model changes reaching the twin and engineering page, and recommended P2-to-P3 transitions in both 3D and the ledger.
 
 The repository distribution excludes local saved experiments, databases, installation records and environment files. New saved experiments are created locally.

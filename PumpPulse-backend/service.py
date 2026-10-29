@@ -8,7 +8,7 @@ from engine import run, POLICIES
 from models import MODELS, model_config
 
 DEFAULTS=dict(power_W=2200,array_Wp=3600,motor_eff=.85,hydraulic_eff=.60,temperature_retention=.90,controller_eff=.95,wiring_retention=.95,voltage_V=220,current_limit_A=13,nominal_rpm=2900,min_rpm=900,max_head_m=110,nominal_flow_L_min=100,max_flow_L_min=150,pipe_diameter_m=.05,pipe_length_m=60,darcy_factor=.025,drawdown_m=2,intake_depth_m=None,min_submergence_m=5,daily_target_L=36000,speed_wear=.9,dry_wear=2.5,start_wear=.6,start_hour=8,end_hour=18)
-# This pilot fixes motor specifications; installation and experimental assumptions are adjustable.
+# The selected catalogue model fixes motor specifications; installation and experimental assumptions are adjustable.
 BOUNDS=dict(array_Wp=(400,20000),drawdown_m=(0,40),intake_depth_m=(1,500),min_submergence_m=(.1,30),daily_target_L=(100,200000),pipe_diameter_m=(.01,.2),pipe_length_m=(1,1000),darcy_factor=(.008,.08),motor_eff=(.1,.98),hydraulic_eff=(.1,.9),temperature_retention=(.4,1),controller_eff=(.5,1),wiring_retention=(.5,1),speed_wear=(.01,5),dry_wear=(.01,10),start_wear=(.01,5),start_hour=(0,23),end_hour=(1,24))
 DB=Path(__file__).parent/'experiments.sqlite3'
 @contextmanager
@@ -63,7 +63,7 @@ def simulate(store,payload,save=True):
  results['timestamp_IST']=results.timestamp_IST.dt.strftime('%Y-%m-%dT%H:%M:%S+05:30')
  inputs['timestamp_IST']=inputs.timestamp_IST.dt.strftime('%Y-%m-%dT%H:%M:%S+05:30')
  records=lambda d:json.loads(d.to_json(orient='records',double_precision=10))
- result=dict(id=str(uuid.uuid4()),created=datetime.now(timezone.utc).isoformat(),version='local-backend-1.0',policies=POLICIES,metadata=meta,config=c,summary=records(summary),daily=records(daily),half_hourly=records(results),inputs=records(inputs),checks=['Finite outputs','Hydraulic power bounded by electrical input and efficiencies','Complete aligned inputs; no extrapolation'])
+ result=dict(id=str(uuid.uuid4()),created=datetime.now(timezone.utc).isoformat(),version='local-backend-1.1',policies=POLICIES,metadata=meta,config=c,summary=records(summary),daily=records(daily),half_hourly=records(results),inputs=records(inputs),checks=['Finite outputs','Hydraulic power bounded by electrical input and efficiencies','Complete aligned inputs; no extrapolation'])
  if save:
   with connect() as db:db.execute('INSERT INTO experiments VALUES (?,?,?,?,?,?)',(result['id'],result['created'],station,payload['start'],payload['end'],json.dumps(result,allow_nan=False)))
  return result

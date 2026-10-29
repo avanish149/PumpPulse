@@ -71,7 +71,7 @@ Old three-policy saved runs remain readable; run a new experiment to include P3.
 
 server.py: HTTP and local static serving. data.py: source validation and alignment. engine.py: pump dynamics and four policies. service.py: validation, aggregation, persistence and exact-time lookup. robustness.py: paired uncertainty trials and storage. static/: connected UI, shared timeline, 3D twin and legacy copy. experiments.sqlite3: locally saved runs.
 
-Run python -m unittest test_backend test_unified_frontend -v for model regression, time alignment, energy limits, validation, target stopping, daily reset, no future-solar dependence, reproducible uncertainty and persistence. Run python test_http.py with the server running for HTTP and export checks. Browser verification covers timeline/3D synchronisation, view modes, uncertainty execution and old-run compatibility.
+Run python -m unittest test_backend test_unified_frontend test_parameters -v for model regression, time alignment, energy limits, validation, target stopping, daily reset, no future-solar dependence, reproducible uncertainty and persistence. Run python test_http.py with the server running for HTTP and export checks. Browser verification covers timeline/3D synchronisation, view modes, uncertainty execution and old-run compatibility.
 
 ## Remaining validation
 
@@ -90,3 +90,7 @@ POST /api/recommendations with experiment_id and date. GET /api/recommendations/
 ## Fully unified version 1.0
 
 All original sidebar pages share the backend experiment; no iframe or old demo simulator is loaded. GET /api/models supplies the original seven conceptual models; model_id selects one in simulation config. GET /api/capabilities explicitly reports absent sensors/forecast/bearing data. GET /api/fleet supplies actual stations and latest saved experiments. Recommended schedule can drive the original twin and ledger. See INTEGRATION.md.
+
+## Parameter verification
+
+See [the parameter audit](PARAMETER_AUDIT.md) for all 18 numeric fields, model/timeline controls, five uncertainty settings, fixed specifications, limits and corrections. The expanded suite has 26 passing tests. Well 010317 has only six records and is unavailable for complete-day replay; 35 of the 36 source wells are replayable. Engine 1.1 adds fixed-speed P2 handling and a no-water stop at an uncovered intake. Existing saved results keep their original engine version; run again to apply changes.

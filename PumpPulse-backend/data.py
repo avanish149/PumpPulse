@@ -29,6 +29,11 @@ class DataStore:
    a=g.iloc[0];lat=float(a.Latitude);lon=float(a.Longitude)
    self.stations.append(dict(id=key,name='Bengaluru well '+key,latitude=lat,longitude=lon,distance_km=round(111*np.hypot(lat-13.0122,(lon-77.617)*np.cos(np.radians(13))),2),start=str(g.time.min().date()),end=str(g.time.max().date()),first_complete_day=str(g.time.min().ceil('D').date()),last_complete_day=str((g.time.max().floor('D')-pd.Timedelta(days=1)).date()),rows=len(g),observed_anchors=int((g['Data Status']=='Observed at exact hour').sum())))
   self.stations.sort(key=lambda x:x['distance_km'])
+  for station in self.stations:
+   station['replay_available']=station['first_complete_day']<=station['last_complete_day']
+   if not station['replay_available']:
+    station['first_complete_day']=station['last_complete_day']=None
+    station['replay_unavailable_reason']='No complete day: this source contains only '+str(station['rows'])+' hourly records.'
  def prepare(self, station, start, end):
   g=self.gw[self.gw['Station Code']==station].sort_values('time').set_index('time')
   if g.empty:raise ValueError('Unknown Bengaluru station')

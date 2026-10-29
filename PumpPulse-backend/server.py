@@ -29,7 +29,7 @@ class Handler(BaseHTTPRequestHandler):
   if not self.allowed():return
   u=urlsplit(self.path);p=u.path
   try:
-   if p=='/api/health':return self.send(200,dict(status='ok',version='local-backend-1.0',stations=len(self.server.store.stations)))
+   if p=='/api/health':return self.send(200,dict(status='ok',version='local-backend-1.1',stations=len(self.server.store.stations)))
    if p=='/api/stations':return self.send(200,dict(stations=self.server.store.stations,assumptions=NOTES))
    if p=='/api/models':return self.send(200,dict(models=list(MODELS.values())))
    if p=='/api/capabilities':return self.send(200,dict(live_sensors=False,weather_forecast=False,bearing_recordings=False,historical_replay=True,hourly_planner=True,pump_models=len(MODELS)))
@@ -107,7 +107,7 @@ def main():
  print('Data files loaded. Press Ctrl+C to stop.',flush=True)
  if args.open:
   import webbrowser
-  webbrowser.open(f'http://127.0.0.1:{args.port}/demo#backend')
+  webbrowser.open(f'http://127.0.0.1:{args.port}/demo#home')
  try:server.serve_forever()
  except KeyboardInterrupt:pass
  finally:server.server_close()

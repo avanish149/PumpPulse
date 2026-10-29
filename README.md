@@ -43,10 +43,10 @@ The report PDF describes the original educational dashboard and predates the bac
 
 ~~~sh
 cd PumpPulse-backend
-python -m unittest test_backend test_unified_frontend -v
+python -m unittest test_backend test_unified_frontend test_parameters -v
 ~~~
 
-HTTP checks additionally require a running server and at least one completed experiment:
+HTTP checks additionally require a running server; they create their own known-date experiment:
 
 ~~~sh
 python test_http.py
@@ -57,3 +57,7 @@ python test_http.py
 Pump specifications, drawdown response and stress coefficients are illustrative. No manufacturer-calibrated head-flow curve or field-validated pump-life model is supplied. Hourly recommendations use historical look-ahead and are not weather forecasts or proven global optima. All original navigation pages now use the unified backend. Live weather forecasts, physical sensor feeds and bearing recordings are explicitly unavailable. See [the integration map](PumpPulse-backend/INTEGRATION.md) for the page-by-page connections.
 
 The server binds to localhost and is intended for local presentation and experimentation. It is not a public production deployment.
+
+## Parameter verification
+
+See [the parameter audit](PumpPulse-backend/PARAMETER_AUDIT.md) for all 18 numeric fields, model/timeline controls, five uncertainty settings, fixed specifications, limits and corrections. The expanded suite has 26 passing tests. Well 010317 has only six records and is unavailable for complete-day replay; 35 of the 36 source wells are replayable. Engine 1.1 adds fixed-speed P2 handling and a no-water stop at an uncovered intake. Existing saved results keep their original engine version; run again to apply changes.

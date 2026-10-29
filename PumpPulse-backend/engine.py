@@ -7,6 +7,7 @@ def hydraulic(q,depth,draw,C):
  return depth+draw+C['darcy_factor']*C['pipe_length_m']/C['pipe_diameter_m']*v*v/(2*9.81)
 
 def operating_point(speed,available,depth,draw,C):
+ if depth+draw>=C['intake_depth_m']:return 0.,0.,0.
  if C.get('pump_type') in ('surface','irrigation') and depth+draw>7:return 0.,0.,0.
  if speed*C['nominal_rpm']<C['min_rpm']:speed=0
  power=min(C['power_W']*speed**3,available,C['voltage_V']*C['current_limit_A']);budget=power*C['motor_eff']*C['hydraulic_eff'];lo=0.;hi=min(C['max_flow_L_min'],C['nominal_flow_L_min']*speed)
@@ -41,11 +42,12 @@ def run(inputs,policy,C,initial=None):
     point=next((x for x in options if x[1]*60>=required_rate),options[-1] if options else (0.,0.,0.))
     sp,q,power=point;reason='Lowest supported speed meeting remaining-delivery rate with 40% planning reserve' if options and q*60>=required_rate else 'Highest feasible speed to reduce remaining demand' if options else 'No feasible supported flow/head operating point'
   else:
-   cmd=(1 if on else 0) if policy==0 else (1 if on and sub>minimum else 0) if policy==1 else (.7 if on and sub>minimum+1 else .4 if on and sub>minimum else 0)
+   fixed=C.get('supported_levels')==[0,1]
+   cmd=(1 if on else 0) if policy==0 else (1 if on and sub>minimum else 0) if policy==1 else ((1 if on and sub>minimum+1 else 0) if fixed else (.7 if on and sub>minimum+1 else .4 if on and sub>minimum else 0))
    cap=min(cmd,np.cbrt(max(0,av/C['power_W'])));sp=next((x for x in sorted(C.get('supported_levels',[0,.4,.7,1]),reverse=True) if x<=cap+1e-9),0)
    sp,q,power=operating_point(sp,av,depth,C['drawdown_m']+dr,C)
   if not sp and not reason:
-   reason='Outside configured operating window' if not on else 'Policy minimum-submergence protection' if policy!=0 and sub<=minimum else 'No feasible supported speed under sunlight and head limits'
+   reason='Outside configured operating window' if not on else 'Water below intake; no water can be pumped' if sub<=0 else 'Surface suction-lift limit exceeded' if C.get('pump_type') in ('surface','irrigation') and depth+C['drawdown_m']+dr>7 else 'Policy minimum-submergence protection' if policy!=0 and sub<=minimum else 'Fixed-speed P2 requires one metre of extra submergence' if policy==2 and fixed and sub<=minimum+1 else 'No feasible supported speed under sunlight and head limits'
   if sp and not reason:reason='Running under '+POLICIES['P'+str(policy)]
   head=hydraulic(q,depth,C['drawdown_m']+dr,C);ph=1000*9.81*q/60000*head;dry=int(sp>0 and sub<minimum);start=int(sp>0 and prev==0);sw=C['speed_wear']*sp**3*dt;dw=C['dry_wear']*dry*sp*dt;stw=C['start_wear']*start;water=q*60*dt;delivered+=water
   records.append(dict(timestamp_IST=tm,policy='P'+str(policy),depth_m=depth,submergence_m=sub,additional_drawdown_m=dr,solar_W_m2=row.solar_mean_W_m2,available_W=av,speed_fraction=sp,flow_L_min=q,head_m=head,input_W=power,hydraulic_W=ph,water_L=water,energy_kWh=power/1000*dt,wear_u=sw+dw+stw,speed_wear_u=sw,dry_wear_u=dw,start_wear_u=stw,low_water_risk_hours=dry*dt,starts=start,daily_delivered_L=delivered,remaining_demand_L=max(0,C['daily_target_L']-delivered),control_reason=reason))
